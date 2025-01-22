@@ -12,11 +12,13 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.StringTokenizer;
 import java.io.Serializable;
+import java.util.List;
 
 public class PostingsEntry implements Comparable<PostingsEntry>, Serializable {
 
     public int docID;
     public double score = 0;
+
 
     /**
      *  PostingsEntries are compared by their score (only relevant
@@ -25,6 +27,9 @@ public class PostingsEntry implements Comparable<PostingsEntry>, Serializable {
      *  The comparison is defined so that entries will be put in 
      *  descending order.
      */
+
+    
+
     public int compareTo( PostingsEntry other ) {
        return Double.compare( other.score, score );
     }
@@ -33,5 +38,20 @@ public class PostingsEntry implements Comparable<PostingsEntry>, Serializable {
     //
     // YOUR CODE HERE
     //
+
+    // contructor
+    public PostingsEntry(int docID, double score) {
+        this.docID = docID;
+        this.score = score;
+    }
+
+    // constructor no score
+    public PostingsEntry(int docID) {
+        this.docID = docID;
+        this.score = 0;
+    }
+
+
+
 }
 

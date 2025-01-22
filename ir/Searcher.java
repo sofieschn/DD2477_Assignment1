@@ -32,6 +32,13 @@ public class Searcher {
         //
         //  REPLACE THE STATEMENT BELOW WITH YOUR CODE
         //
-        return null;
+
+
+        //1.2
+        String token = query.queryterm.get(0).term;
+        PostingsList postings = index.getPostings(token);
+
+        return postings;
+
     }
 }

@@ -28,7 +28,23 @@ public class HashedIndex implements Index {
     public void insert( String token, int docID, int offset ) {
         //
         // YOUR CODE HERE
-        //
+
+        // If the token is not in the index, create a new PostingsList
+        // and add it to the index.
+        if (!index.containsKey(token)) {
+            PostingsList postings = new PostingsList();
+            PostingsEntry entry = new PostingsEntry(docID, offset);
+            postings.insert(entry);
+            index.put(token, postings);
+        }
+        else {
+            PostingsList postings = index.get(token);
+            PostingsEntry entry = new PostingsEntry(docID, offset);
+            postings.insert(entry);
+        }
+
+
+        
     }
 
 
@@ -40,6 +56,9 @@ public class HashedIndex implements Index {
         //
         // REPLACE THE STATEMENT BELOW WITH YOUR CODE
         //
+        if (index.containsKey(token)) {
+            return index.get(token);
+        }
         return null;
     }
 

@@ -22,11 +22,27 @@ public class PostingsList {
 
     /** Returns the ith posting. */
     public PostingsEntry get( int i ) {
-    return list.get( i );
+        return list.get( i );
     }
 
     // 
     //  YOUR CODE HERE
-    //
+
+    // Inserts a new PostingsEntry to the list
+    // avoids adding query term to the same document multiple time
+    public void insert(PostingsEntry entry) {
+        for (PostingsEntry e : list) {
+            if (e.docID == entry.docID) {
+
+                if (e.docID == entry.docID) {
+                    return;
+                }
+            }
+        }
+        list.add(entry);
+    }
+
+    
+
 }
 
