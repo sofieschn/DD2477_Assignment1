@@ -7,6 +7,7 @@
 
 package ir;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.ListIterator;
 
@@ -34,14 +35,34 @@ public class Searcher {
      *  @return A postings list representing the result of the query.
      */
     public PostingsList search( Query query, QueryType queryType, RankingType rankingType, NormalizationType normType ) { 
-        //
-        //  REPLACE THE STATEMENT BELOW WITH YOUR CODE
+
         
         // 1.4 Phrase queries
       
+        if (queryType == QueryType.PHRASE_QUERY && query.queryterm.size() > 1) {
+            PostingsList result = null;
+    
+            for (QueryTerm term : query.queryterm) {
+                String token = term.term;
+                PostingsList postings = index.getPostings(token);
+    
+                if (postings == null) {
+                    return new PostingsList(); // Return empty result if a term is missing
+                }
 
+                if (result == null) {
+                    result = postings; // Initialize result with the first term's postings
+                } else {
+                    result = phraseIntersect(result, postings); // Perform phrase intersection
+                }
+
+
+            }
+    
+            return result;
+            
         // 1.3 Multi-word queries
-        if (queryType == QueryType.INTERSECTION_QUERY) {
+        } else if (queryType == QueryType.INTERSECTION_QUERY) {
             PostingsList result = null;
 
         // Iterate through each term in the query
@@ -74,6 +95,7 @@ public class Searcher {
 
 
     }
+
     private PostingsList intersect(PostingsList list1, PostingsList list2) {
         PostingsList result = new PostingsList();
         int i = 0, j = 0;
@@ -97,6 +119,65 @@ public class Searcher {
     
         return result;
 
-}
     }
+
+    private PostingsList phraseIntersect(PostingsList list1, PostingsList list2) {
+        PostingsList result = new PostingsList(); // The final result
+        int i = 0, j = 0;
+    
+        // Iterate over both postings lists
+        while (i < list1.size() && j < list2.size()) {
+            PostingsEntry entry1 = list1.get(i);
+            PostingsEntry entry2 = list2.get(j);
+    
+            if (entry1.docID == entry2.docID) {
+                // Both entries are for the same document
+                List<Integer> offsets1 = entry1.offsets;
+                List<Integer> offsets2 = entry2.offsets;
+    
+                System.out.println("Processing docID: " + entry1.docID);
+                System.out.println("Offsets1: " + offsets1);
+                System.out.println("Offsets2: " + offsets2);
+    
+                // Matching offsets where terms are adjacent
+                List<Integer> matchingOffsets = new ArrayList<>();
+                for (int offset1 : offsets1) {
+                    for (int offset2 : offsets2) {
+                        if (offset2 == offset1 + 1) { // Adjacency condition
+                            matchingOffsets.add(offset2);
+                            break; // No need to check further for this offset1
+                        }
+                    }
+                }
+    
+                if (!matchingOffsets.isEmpty()) {
+                    // Add matching offsets to the result
+                    PostingsEntry newEntry = new PostingsEntry(entry1.docID);
+                    for (int offset : matchingOffsets) {
+                        newEntry.addOffset(offset); // Use the addOffset method
+                    }
+                    result.insert(newEntry);
+                }
+    
+                i++;
+                j++;
+            } else if (entry1.docID < entry2.docID) {
+                i++;
+            } else {
+                j++;
+            }
+        }
+    
+        System.out.println("PhraseIntersect Result: " + result);
+        return result;
+    }
+    
+    
+
+    
+}
+
+
+
+    
 

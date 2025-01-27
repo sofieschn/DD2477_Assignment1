@@ -43,6 +43,7 @@ public class PostingsEntry implements Comparable<PostingsEntry>, Serializable {
     public PostingsEntry(int docID, double score) {
         this.docID = docID;
         this.score = score;
+        this.offsets = new ArrayList<>(); // 1.4
     }
 
     // constructor no score

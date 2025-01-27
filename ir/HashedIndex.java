@@ -25,27 +25,35 @@ public class HashedIndex implements Index {
     /**
      *  Inserts this token in the hashtable.
      */
-    public void insert( String token, int docID, int offset ) {
-        //
-        // YOUR CODE HERE
+/**
+ * Inserts this token in the hashtable.
+ */
+public void insert(String token, int docID, int offset) {
+    // Check if the token already exists in the index
+    PostingsList postings = index.getOrDefault(token, new PostingsList());
 
-        // If the token is not in the index, create a new PostingsList
-        // and add it to the index.
-        if (!index.containsKey(token)) {
-            PostingsList postings = new PostingsList();
-            PostingsEntry entry = new PostingsEntry(docID, offset);
-            postings.insert(entry);
-            index.put(token, postings);
+    // Check if an entry for this docID already exists
+    boolean entryExists = false;
+    for (PostingsEntry entry : postings.list) {
+        if (entry.docID == docID) {
+            // Add the new offset to the existing entry
+            entry.addOffset(offset);
+            entryExists = true;
+            break;
         }
-        else {
-            PostingsList postings = index.get(token);
-            PostingsEntry entry = new PostingsEntry(docID, offset);
-            postings.insert(entry);
-        }
-
-
-        
     }
+
+    // If no entry exists for this docID, create a new one
+    if (!entryExists) {
+        PostingsEntry newEntry = new PostingsEntry(docID);
+        newEntry.addOffset(offset);
+        postings.insert(newEntry);
+    }
+
+    // Add or update the postings list in the index
+    index.put(token, postings);
+}
+
 
 
     /**
