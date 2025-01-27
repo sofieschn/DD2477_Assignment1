@@ -52,6 +52,15 @@ public class PostingsEntry implements Comparable<PostingsEntry>, Serializable {
     }
 
 
+    // adding offset for task 1.4 phrase queries
+    public ArrayList<Integer> offsets = new ArrayList<Integer>();
+    
+
+    public void addOffset(int offset) {
+        offsets.add(offset);
+    }
+
+
 
 }
 
