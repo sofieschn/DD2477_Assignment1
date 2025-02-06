@@ -17,8 +17,6 @@ public class Engine {
 
     /** The inverted index. */
     Index index = new HashedIndex();
-
-    //index.writeIndexToFile("index_output.txt");
     // Assignment 1.7: Comment the line above and uncomment the next line
     // Index index = new PersistentHashedIndex();
 

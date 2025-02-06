@@ -34,38 +34,36 @@ public class HashedIndex implements Index {
 
     
 
-    /**
-     *  Inserts this token in the hashtable.
-     */
+
 /**
  * Inserts this token in the hashtable.
+ * For each postingsentry, we want to know in what documents it appears, and where in the documents (offset)
+ * We keep all this info in a postingslist, and each term has a postingslist associated
  */
-public void insert(String token, int docID, int offset) {
-    // Check if the token already exists in the index
-    PostingsList postings = index.getOrDefault(token, new PostingsList());
+    public void insert(String token, int docID, int offset) {
+        // Check if the token already exists in the index. if it does the postings will be assigned value of this token, if not a new empty one  will be created
+        PostingsList postings = index.getOrDefault(token, new PostingsList()); 
 
-    // Check if an entry for this docID already exists
-    boolean entryExists = false;
-    for (PostingsEntry entry : postings.list) {
-        if (entry.docID == docID) {
-            // Add the new offset to the existing entry
-            entry.addOffset(offset);
-            entryExists = true;
-            break;
+        // iterate over the postingslist and check if the docID already exists
+        boolean entryExists = false; 
+        for (PostingsEntry entry : postings.list) { 
+            if (entry.docID == docID) { // if the entry being inserted occurs in the document allready 
+                entry.addOffset(offset); // Add the new offset (new position of the word) to the existing entry
+                entryExists = true; // boolean is now true which means it will not loop next statement 
+                break;
+            }
         }
+
+        // entry has not occured in this document before 
+        if (!entryExists) {
+            PostingsEntry newEntry = new PostingsEntry(docID); // we add the docID to the new entry
+            newEntry.addOffset(offset); // and add the offset where the word occurs
+            postings.insert(newEntry); // and add the entry to the postings list
+        }
+
+        index.put(token, postings); // and update the index with this new addition
+
     }
-
-    // If no entry exists for this docID, create a new one
-    if (!entryExists) {
-        PostingsEntry newEntry = new PostingsEntry(docID);
-        newEntry.addOffset(offset);
-        postings.insert(newEntry);
-    }
-
-    // Add or update the postings list in the index
-    index.put(token, postings);
-
-}
 
 
 
@@ -78,13 +76,15 @@ public void insert(String token, int docID, int offset) {
         //
         // REPLACE THE STATEMENT BELOW WITH YOUR CODE
         //
-        if (index.containsKey(token)) {
-            return index.get(token);
+        if (index.containsKey(token)) { // if the index contains the token
+            return index.get(token); // return the postings
         }
-        return null;
+        return null; // else return null
     }
 
 
+
+    /// we save the index to a file however not used (yet)
     public void writeIndexToFile(String filename) {
         try (BufferedWriter writer = new BufferedWriter(new FileWriter(filename))) {
             for (Map.Entry<String, PostingsList> entry : index.entrySet()) {

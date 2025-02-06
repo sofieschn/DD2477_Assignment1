@@ -9,6 +9,8 @@ package ir;
 
 import java.util.ArrayList;
 
+
+// there is one postingslist for each term. THe list keeps track of all the documents where the term occurs 
 public class PostingsList {
     
     /** The postings list */
@@ -32,17 +34,14 @@ public class PostingsList {
     //  YOUR CODE HERE
 
     // Inserts a new PostingsEntry to the list
-    // avoids adding query term to the same document multiple time
+    // avoids adding query term to the same document multiple times.
     public void insert(PostingsEntry entry) {
-        for (PostingsEntry e : list) {
-            if (e.docID == entry.docID) {
-
-                if (e.docID == entry.docID) {
+        for (PostingsEntry e : list) { // iterate over each entry in the postingslist 
+            if (e.docID == entry.docID) {// if the current entry matches the docID of the new entry, we dont need to add the document again
                     return;
-                }
             }
         }
-        list.add(entry);
+        list.add(entry); // if the entry is not in the list, add it
     }
 
                
