@@ -10,6 +10,13 @@ package ir;
 
 import java.util.HashMap;
 import java.util.Iterator;
+import java.io.BufferedReader;
+import java.io.BufferedWriter;
+import java.io.File;
+import java.io.FileReader;
+import java.io.FileWriter;
+import java.util.Map;
+import java.io.IOException;
 
 
 /**
@@ -21,6 +28,11 @@ public class HashedIndex implements Index {
     /** The index as a hashtable. */
     private HashMap<String,PostingsList> index = new HashMap<String,PostingsList>();
 
+    private static final String INDEX_SAVE_PATH = "/Users/sofieschnitzer/Desktop/KTH_HT24_filer/T2/DD2477_search_engines/Assignment_1/assignment1/indexSave.txt";
+
+
+
+    
 
     /**
      *  Inserts this token in the hashtable.
@@ -52,7 +64,9 @@ public void insert(String token, int docID, int offset) {
 
     // Add or update the postings list in the index
     index.put(token, postings);
+
 }
+
 
 
 
@@ -71,9 +85,29 @@ public void insert(String token, int docID, int offset) {
     }
 
 
+    public void writeIndexToFile(String filename) {
+        try (BufferedWriter writer = new BufferedWriter(new FileWriter(filename))) {
+            for (Map.Entry<String, PostingsList> entry : index.entrySet()) {
+                String token = entry.getKey();
+                PostingsList postings = entry.getValue();
+                
+                // Write the token followed by its postings list
+                writer.write(token + ": " + postings.toString()); 
+                writer.newLine();
+            }
+            System.out.println("Index successfully written to " + INDEX_SAVE_PATH);
+        } catch (IOException e) {
+            System.err.println("Error writing index to file: " + e.getMessage());
+        }
+    }
+    
+    
+ 
+
     /**
      *  No need for cleanup in a HashedIndex.
      */
     public void cleanup() {
+        writeIndexToFile("indexSave.txt");
     }
 }

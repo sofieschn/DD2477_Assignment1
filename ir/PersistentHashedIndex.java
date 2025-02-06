@@ -267,6 +267,7 @@ public class PersistentHashedIndex implements Index {
             // Go through all terms in the index
             long ptr = free;
             for(String term: index.keySet()){
+                
                 String encodedPostings = encode(index.get(term));
                 int size = writeData(encodedPostings, ptr);
                 Entry entry = new Entry(term, ptr, size);
@@ -339,74 +340,37 @@ public class PersistentHashedIndex implements Index {
     /// ____________ Helper function to get postings and decode the format and encode
     /// 
     /// 
-    private PostingsList decode(String data) {
-        PostingsList postings = new PostingsList();
-    
-        // Handle empty or null data
-        if (data == null || data.trim().isEmpty()) {
-            System.out.println("No data to decode. Returning empty postings list.");
-            return postings;
+    public static PostingsList decode(String str){
+        //go through list and create objects
+        PostingsList pl = new PostingsList();
+ 
+        String[] split = str.split(",");
+        for(int i = 0; i < split.length; i++){
+          String[] e = split[i].split((":"));
+          PostingsEntry entry = new PostingsEntry(Integer.parseInt(e[0]), 0.0);
+          for(int j = 1; j < e.length -1; j ++){
+            entry.offsets.add(Integer.parseInt(e[j]));
+          }
+          pl.list.add(entry);
         }
-    
-        System.out.println("Decoding data: '" + data + "'");
-    
-        String[] entries = data.split(";");
-        for (String entry : entries) {
-            if (entry.trim().isEmpty()) {
-                System.out.println("Skipping empty entry in data.");
-                continue; // Skip empty entries
-            }
-    
-            String[] parts = entry.split(":");
-            if (parts.length < 1) {
-                System.out.println("Malformed entry: " + entry);
-                continue; // Skip malformed entries
-            }
-    
-            try {
-                // Parse docID
-                int docID = Integer.parseInt(parts[0].trim());
-                PostingsEntry postingsEntry = new PostingsEntry(docID);
-    
-                // Parse offsets
-                for (int i = 1; i < parts.length; i++) {
-                    if (!parts[i].trim().isEmpty()) {
-                        postingsEntry.addOffset(Integer.parseInt(parts[i].trim()));
-                    }
-                }
-    
-                // Add the entry to the postings list
-                postings.insert(postingsEntry);
-            } catch (NumberFormatException e) {
-                System.err.println("Failed to parse entry: " + entry);
-                e.printStackTrace();
-            }
-        }
-    
-        return postings;
-    }
+        return pl;
+      }
     
     
     
-    private String encode(PostingsList postingsList) {
+    public static String encode(PostingsList pl){
         StringBuilder sb = new StringBuilder();
-    
-        for (PostingsEntry entry : postingsList.getList()) {
-            // Append the document ID
-            sb.append(entry.docID);
-    
-            // Append offsets, separated by colons
-            for (int offset : entry.offsets) {
-                sb.append(":").append(offset);
-            }
-    
-            // Separate entries with a semicolon
-            sb.append(";");
+        ArrayList<PostingsEntry> list = pl.list;
+        for(PostingsEntry entry: list){
+          sb.append(entry.docID);
+          for(int pos: entry.offsets){
+            sb.append(":");
+            sb.append(pos);
+          }
+          sb.append(",");
         }
-    
         return sb.toString();
-    }
-    
+      }
     
     
 ///-----------------
@@ -451,11 +415,7 @@ public class PersistentHashedIndex implements Index {
     /// 
     
     private long computeHash(String term) {
-        long hash = 7; // Start with a small prime number
-        for (int i = 0; i < term.length(); i++) {
-            hash = (31 * hash + term.charAt(i)) % TABLESIZE; // Polynomial rolling hash
-        }
-        return hash;
+        return (term.hashCode() & 0x7fffffff) % TABLESIZE; // Ensure non-negative values
     }
     
 
