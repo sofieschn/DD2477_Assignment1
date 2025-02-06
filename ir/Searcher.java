@@ -171,7 +171,10 @@ public class Searcher {
         System.out.println("PhraseIntersect Result: " + result);
         return result;
     }
-  
+    
+    
+
+    
 }
 
 

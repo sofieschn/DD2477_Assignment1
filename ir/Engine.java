@@ -16,9 +16,9 @@ import java.io.File;
 public class Engine {
 
     /** The inverted index. */
-    //Index index = new HashedIndex();
+    Index index = new HashedIndex();
     // Assignment 1.7: Comment the line above and uncomment the next line
-    Index index = new PersistentHashedIndex();
+    //Index index = new PersistentHashedIndex();
 
     /** The indexer creating the search index. */
     Indexer indexer;
@@ -135,6 +135,24 @@ public class Engine {
 
 
     /* ----------------------------------------------- */
+
+
+    public Engine(String[] args) {
+        // ...
+        String indexFile = "hashedIndex.txt"; // Choose a file name
+        File file = new File(indexFile);
+        if (file.exists()) {
+            index.loadIndexFromFile(indexFile);
+        } else {
+            // Create a new index and save it to the file
+            index = new HashedIndex();
+            // ... (rest of the constructor remains the same)
+            index.saveIndexToFile(indexFile);
+        }
+        // ...
+    }
+
+    
 
 
     public static void main( String[] args ) {

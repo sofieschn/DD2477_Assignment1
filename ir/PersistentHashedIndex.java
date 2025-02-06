@@ -12,7 +12,6 @@ import java.util.*;
 import java.nio.charset.*;
 
 
-
 /*
  *   Implements an inverted index as a hashtable on disk.
  *   
@@ -66,22 +65,16 @@ public class PersistentHashedIndex implements Index {
         //
         //  YOUR CODE HERE
         //
-
         String term;
         long ptr;
         int size;
 
-        public Entry(String term, long ptr, int size) {
-            this.term = term;
-            this.ptr = ptr;
-            this.size = size;
+        //Constructor
+        public Entry(String term, long ptr, int size){
+          this.term = term;
+          this.ptr = ptr;
+          this.size = size;
         }
-
-        public Entry(long ptr, int size) {
-            this.ptr = ptr;
-            this.size = size;
-        }
-
 
     }
 
@@ -153,59 +146,25 @@ public class PersistentHashedIndex implements Index {
      *  @param entry The key of this entry is assumed to have a fixed length
      *  @param ptr   The place in the dictionary file to store the entry
      */
-    void writeEntry(Entry entry, long ptr) {
-        try {
-            dictionaryFile.seek(ptr); // Move to the correct location in the dictionary file
-    
-            // Write the term, padded to 20 characters
-            String termPadded = String.format("%-20s", entry.term);
-            dictionaryFile.write(termPadded.getBytes(Charset.forName("UTF-8")));
-    
-            // Write the pointer and size
-            dictionaryFile.writeLong(entry.ptr);
-            dictionaryFile.writeInt(entry.size);
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
+    void writeEntry( Entry entry, long ptr ) {
+        //
+        //  YOUR CODE HERE
+        //
+
+
     }
-    
 
     /**
      *  Reads an entry from the dictionary file.
      *
      *  @param ptr The place in the dictionary file where to start reading.
      */
-    Entry readEntry(long ptr) {
-        try {
-            // Check if the pointer is within the file bounds
-            if (ptr >= dictionaryFile.length()) {
-                return null; // Out of bounds
-            }
-    
-            dictionaryFile.seek(ptr); // Move to the correct location in the dictionary file
-    
-            // Read the term (20 characters)
-            byte[] termBytes = new byte[20];
-            dictionaryFile.read(termBytes);
-            String term = new String(termBytes, Charset.forName("UTF-8")).trim();
-    
-            // Read the pointer and size
-            long dataPtr = dictionaryFile.readLong();
-            int size = dictionaryFile.readInt();
-    
-            // Check for uninitialized entry
-            if (term.isEmpty() && dataPtr == 0 && size == 0) {
-                return null;
-            }
-    
-            return new Entry(term, dataPtr, size);
-        } catch (IOException e) {
-            e.printStackTrace();
-            return null;
-        }
+    Entry readEntry( long ptr ) {   
+        //
+        //  REPLACE THE STATEMENT BELOW WITH YOUR CODE 
+        //
+        return null;
     }
-    
-    
 
 
     // ==================================================================
@@ -249,44 +208,25 @@ public class PersistentHashedIndex implements Index {
 
     /**
      *  Write the index to files.
-     * takes all the terms in the in-memory index and writes them to the data file and dictionary file.
      */
     public void writeIndex() {
         int collisions = 0;
-        ArrayList<Long> hashes = new ArrayList<Long>();
         try {
             // Write the 'docNames' and 'docLengths' hash maps to a file
             writeDocInfo();
 
             // Write the dictionary and the postings list
 
-            //
+            // 
             //  YOUR CODE HERE
             //
 
-            // Go through all terms in the index
-            long ptr = free;
-            for(String term: index.keySet()){
-                String encodedPostings = encode(index.get(term));
-                int size = writeData(encodedPostings, ptr);
-                Entry entry = new Entry(term, ptr, size);
-                long hash = computeHash(term);
-                if(hashes.contains(hash)){collisions++;}
-                else{hashes.add(hash);}
-                writeEntry(entry, hash);
-                ptr += size;
-            }
-
-            //dataFile.close();
-            //dictionaryFile.close();
-
-        }
-        catch ( IOException e ) {
+        } catch ( IOException e ) {
             e.printStackTrace();
         }
         System.err.println( collisions + " collisions." );
     }
-    
+
 
     // ==================================================================
 
@@ -299,117 +239,9 @@ public class PersistentHashedIndex implements Index {
         //
         //  REPLACE THE STATEMENT BELOW WITH YOUR CODE
         //
-
-        try {
-            // compute hash for this term
-            long hash = computeHash(token);
-            long dictionaryPtr = hash * 32; // Fixed size for dictionary entries
-
-            // locate term in dict 
-            while (true) {
-                Entry entry = readEntry(dictionaryPtr);
-                if (entry == null) {
-                    return null;
-                }
-                if (entry.term.equals(token)) {
-
-                    // read the postings list from the data file
-                    String encodedPostings = readData(entry.ptr, entry.size);
-
-                    // decode the postings list
-
-                    if (encodedPostings == null || encodedPostings.isEmpty()) {
-                        return null;
-                    }
-
-                    System.err.println(encodedPostings);
-                    return decode(encodedPostings);
-                }
-                // collisions 
-                dictionaryPtr = (dictionaryPtr + 32) % (TABLESIZE * 32); // Linear probing
-            }
-
-        } catch ( Exception e ) {
-            e.printStackTrace();
-        }
         return null;
-
     }
 
-    /// ____________ Helper function to get postings and decode the format and encode
-    /// 
-    /// 
-    private PostingsList decode(String data) {
-        PostingsList postings = new PostingsList();
-    
-        // Handle empty or null data
-        if (data == null || data.trim().isEmpty()) {
-            System.out.println("No data to decode. Returning empty postings list.");
-            return postings;
-        }
-    
-        System.out.println("Decoding data: '" + data + "'");
-    
-        String[] entries = data.split(";");
-        for (String entry : entries) {
-            if (entry.trim().isEmpty()) {
-                System.out.println("Skipping empty entry in data.");
-                continue; // Skip empty entries
-            }
-    
-            String[] parts = entry.split(":");
-            if (parts.length < 1) {
-                System.out.println("Malformed entry: " + entry);
-                continue; // Skip malformed entries
-            }
-    
-            try {
-                // Parse docID
-                int docID = Integer.parseInt(parts[0].trim());
-                PostingsEntry postingsEntry = new PostingsEntry(docID);
-    
-                // Parse offsets
-                for (int i = 1; i < parts.length; i++) {
-                    if (!parts[i].trim().isEmpty()) {
-                        postingsEntry.addOffset(Integer.parseInt(parts[i].trim()));
-                    }
-                }
-    
-                // Add the entry to the postings list
-                postings.insert(postingsEntry);
-            } catch (NumberFormatException e) {
-                System.err.println("Failed to parse entry: " + entry);
-                e.printStackTrace();
-            }
-        }
-    
-        return postings;
-    }
-    
-    
-    
-    private String encode(PostingsList postingsList) {
-        StringBuilder sb = new StringBuilder();
-    
-        for (PostingsEntry entry : postingsList.getList()) {
-            // Append the document ID
-            sb.append(entry.docID);
-    
-            // Append offsets, separated by colons
-            for (int offset : entry.offsets) {
-                sb.append(":").append(offset);
-            }
-    
-            // Separate entries with a semicolon
-            sb.append(";");
-        }
-    
-        return sb.toString();
-    }
-    
-    
-    
-///-----------------
 
     /**
      *  Inserts this token in the main-memory hashtable.
@@ -418,46 +250,7 @@ public class PersistentHashedIndex implements Index {
         //
         //  YOUR CODE HERE
         //
-
-        PostingsList postings = index.getOrDefault(token, new PostingsList());
-
-        boolean entryExists = false;
-        for (PostingsEntry entry : postings.list) {
-            if (entry.docID == docID) {
-
-                // if an entry exists already we add the offset to the list of offsets
-                entry.addOffset(offset);
-                entryExists = true;
-                break;
-            }
-        }
-
-        // if we dont find the dcoument id in the list we create a new entry
-        if (!entryExists) {
-            PostingsEntry newEntry = new PostingsEntry(docID);
-            newEntry.addOffset(offset);
-            postings.insert(newEntry);
-        }
-
-        // we update the postings list in the index
-        index.put(token, postings);
     }
-
-
-    /// ==================================================================
-    /// hash function
-    /// ==================================================================
-    /// 
-    /// 
-    
-    private long computeHash(String term) {
-        long hash = 7; // Start with a small prime number
-        for (int i = 0; i < term.length(); i++) {
-            hash = (31 * hash + term.charAt(i)) % TABLESIZE; // Polynomial rolling hash
-        }
-        return hash;
-    }
-    
 
 
     /**
