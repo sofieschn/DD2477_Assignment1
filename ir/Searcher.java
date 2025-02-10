@@ -37,6 +37,14 @@ public class Searcher {
     public PostingsList search( Query query, QueryType queryType, RankingType rankingType, NormalizationType normType ) { 
 
         
+
+        /// 2.1 Ranked retrieval 
+        /// 
+        
+        if (queryType == QueryType.RANKED_QUERY) {
+            return new PostingsList();
+        }
+
         // 1.4 Phrase queries
       
         // if we have selected the querytype phrase, and the query has more than one term
