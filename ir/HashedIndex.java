@@ -85,7 +85,7 @@ public class HashedIndex implements Index {
 
 
     /// we save the index to a file however not used (yet)
-    public void writeIndexToFile(String filename) {
+    /*public void writeIndexToFile(String filename) {
         try (BufferedWriter writer = new BufferedWriter(new FileWriter(filename))) {
             for (Map.Entry<String, PostingsList> entry : index.entrySet()) {
                 String token = entry.getKey();
@@ -99,7 +99,7 @@ public class HashedIndex implements Index {
         } catch (IOException e) {
             System.err.println("Error writing index to file: " + e.getMessage());
         }
-    }
+    } */
     
     
  
@@ -108,6 +108,6 @@ public class HashedIndex implements Index {
      *  No need for cleanup in a HashedIndex.
      */
     public void cleanup() {
-        writeIndexToFile("indexSave.txt");
+        //writeIndexToFile("indexSave.txt");
     }
 }

@@ -8,6 +8,7 @@
 package ir;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.ListIterator;
 
@@ -36,13 +37,51 @@ public class Searcher {
      */
     public PostingsList search( Query query, QueryType queryType, RankingType rankingType, NormalizationType normType ) { 
 
-        
-
         /// 2.1 Ranked retrieval 
-        /// 
         
-        if (queryType == QueryType.RANKED_QUERY) {
-            return new PostingsList();
+        if (queryType == QueryType.RANKED_QUERY && query.queryterm.size() > 1) {
+            int N = index.docLengths.size(); // the number of documents in the index
+            ArrayList<String> queryTerms = new ArrayList<String>();
+
+            for (int i = 0; i < query.queryterm.size(); i++) {
+                queryTerms.add(query.queryterm.get(i).term); // add the terms to the list of terms
+                }
+            
+                PostingsList result = new PostingsList();
+
+                for (int counter = 0; counter < queryTerms.size(); counter++) {
+                    PostingsList postings = index.getPostings(queryTerms.get(counter)); // look in the index for the postings for this term
+                    PostingsList rankedPostings = rankPostingLists(postings, N); // perform the ranked retrieval
+
+                    for (PostingsEntry entry : rankedPostings.getList()) {
+                        PostingsEntry existingEntry = result.checkForEntry(entry.docID);
+
+                        if (existingEntry == null) {
+                            result.insert(new PostingsEntry(entry.docID));
+                        } else {
+                            existingEntry.score += entry.score;
+                        }
+                                        
+                    }
+                }
+
+                Collections.sort(result.getList());
+                return result;
+        }
+    
+
+
+        // ranked retrieval for 1 word queries
+        if (queryType == QueryType.RANKED_QUERY && query.queryterm.size() == 1) {
+            
+            String token = query.queryterm.get(0).term; // there is only 1 term in the query
+            PostingsList postings = index.getPostings(token); // we look in the index for the postings for this term
+
+            int N = index.docLengths.size(); // the number of documents in the index
+            postings = rankPostingLists(postings, N); // perform the ranked retrieval
+
+            return postings;
+
         }
 
         // 1.4 Phrase queries
@@ -107,6 +146,37 @@ public class Searcher {
 
 
     }
+
+    //  2.1 
+    // ranked retrieval function 
+
+    // we compute the tf-idf score for each term in the postingslist
+    // we are sorting the hits of a search query by relevance
+    // relevance is calculted based on how many times a term occurs in a document
+    // and how many documents contain the term
+
+    private PostingsList rankPostingLists(PostingsList list, int N) {
+        int tf = 0; // the frequency that the term occurs in the doc
+        int df_t = 0; // the number of docs that contain the term
+        int docLength = 0; // wordcount of doc
+        double idf = 0.0;
+        double tf_idf = 0.0;
+
+        for (int i = 0; i< list.size(); i++) {
+            tf = list.get(i).offsets.size(); // get the frequency of the term in the doc
+            df_t = list.size(); // get the number of docs that contain the term
+            docLength = index.docLengths.get(list.get(i).docID); // get the length of the document from the index
+            idf = java.lang.Math.log10(N/df_t); // compute the idf
+            tf_idf = (tf * idf)/docLength; // compute the tf-idf
+            list.get(i).score = tf_idf; // set the score to this doc
+        }
+
+        // based on the scores of each doc, sort the postingslist
+        Collections.sort(list.getList());
+        return list;
+
+    }
+
 
     private PostingsList intersect(PostingsList list1, PostingsList list2) {
         PostingsList result = new PostingsList();

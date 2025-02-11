@@ -8,6 +8,7 @@
 package ir;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 
 
 // there is one postingslist for each term. THe list keeps track of all the documents where the term occurs 
@@ -15,6 +16,8 @@ public class PostingsList {
     
     /** The postings list */
     public ArrayList<PostingsEntry> list = new ArrayList<PostingsEntry>();
+    // 2.2 
+    private HashMap<Integer, PostingsEntry> entryMap = new HashMap<Integer, PostingsEntry>();
 
     public ArrayList<PostingsEntry> getList() {
         return list;
@@ -30,8 +33,12 @@ public class PostingsList {
         return list.get( i );
     }
 
-    // 
-    //  YOUR CODE HERE
+
+    // returns the Hashmap of the entries
+    public HashMap<Integer, PostingsEntry> getEntryMap() {
+        return entryMap;
+    }
+
 
     // Inserts a new PostingsEntry to the list
     // avoids adding query term to the same document multiple times.
@@ -45,6 +52,13 @@ public class PostingsList {
     }
 
                
+    public PostingsEntry checkForEntry(int docID) {
+        if(entryMap.containsKey(docID)){
+            return entryMap.get(docID);
+        } else {
+            return null;
+        }
+    }
 
 
 
